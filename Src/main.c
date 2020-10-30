@@ -176,7 +176,7 @@ int main(void)
   CANOpen_mappingPDO_init(&readPDO);
   CANOpen_mappingPDO_int32(&readPDO, &readSpeed);
   
-  CANOpen_writeOD_uint8(0x31, 0x2040, 0x00, 0x02, 100); // OD[2040, 00] = 0x04 (Set Motor driver to Speed control state)
+  CANOpen_writeOD_uint8(0x31, 0x2040, 0x00, 0x02, 100); // OD[2040, 00] = 0x02 (Set Motor driver to Speed control state)
   
   // [[ Main timer start ]]
   // Start main control timer (1kHz)
