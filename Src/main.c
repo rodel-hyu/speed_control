@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include "arm_math.h"
 #include "CANOpen.h"
+#include "CANOpen_batch.h"
 
 #ifndef PI
 #define PI 3.14159265358979f
@@ -76,11 +77,6 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-CO_PDOStruct readPDO;
-CO_PDOStruct sendPDO;
-int32_t readSpeed;
-int32_t sendSpeed;
-
 CAN_RxHeaderTypeDef   Rx0Header;
 uint8_t               Rx0Data[8];
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
@@ -91,18 +87,28 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 
 float t;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-  if(htim == &htim1){
+  if(htim == &htim1){ // 1kHz Loop
     
     // TODO
     t += 0.001f;
-    sendSpeed = (int32_t)(196000 * arm_sin_f32(PI_2*0.5f*t));
+    // Using variables
+    // OD_0x22_target_position
+    // OD_0x22_actual_position
+    // OD_0x23_target_position
+    // OD_0x23_actual_position
+    // OD_0x31_target_speed
+    // OD_0x31_actual_speed
     
     // [[ Send CANOpen Frame ]]
-    CANOpen_sendPDO(0x31, 1, &sendPDO);
+    CANOpen_sendPDO(0x22, 1, &sendPDO_0x22);
+    CANOpen_sendPDO(0x23, 1, &sendPDO_0x23);
+    CANOpen_sendPDO(0x31, 1, &sendPDO_0x31);
     CANOpen_sendSync();
-    CANOpen_readPDO(0x31, 1, &readPDO, 2);
+    CANOpen_readPDO(0x22, 1, &readPDO_0x22, 2);
+    CANOpen_readPDO(0x23, 1, &readPDO_0x23, 2);
+    CANOpen_readPDO(0x31, 1, &readPDO_0x31, 2);
     
-  }else if(htim == &htim2){
+  }else if(htim == &htim2){ // 10kHz Loop
     CANOpen_timerLoop();
   }
 }
@@ -165,19 +171,14 @@ int main(void)
   // Start Timer2 to check timeout of CANOpen response (10kHz)
   HAL_TIM_Base_Start_IT(&htim2);
 
-  
-  CANOpen_writeOD_uint8(0x31, 0x2040, 0x00, 0x00, 100); // OD[2040, 00] = 0x00 (Set Motor driver to Stop state)
-  
+  // [[ CANOpen Startup Batch ]]
+  CANOpen_batch_Init();
   while(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET); // Wait Blue button click
-  
-  CANOpen_mappingPDO_init(&sendPDO);
-  CANOpen_mappingPDO_int32(&sendPDO, &sendSpeed);
-  
-  CANOpen_mappingPDO_init(&readPDO);
-  CANOpen_mappingPDO_int32(&readPDO, &readSpeed);
-  
-  CANOpen_writeOD_uint8(0x31, 0x2040, 0x00, 0x02, 100); // OD[2040, 00] = 0x04 (Set Motor driver to Speed control state)
-  
+  CANOpen_batch_0x22();
+  CANOpen_batch_0x23();
+  CANOpen_batch_0x31();
+  CANOpen_batch_Start();
+
   // [[ Main timer start ]]
   // Start main control timer (1kHz)
   HAL_TIM_Base_Start_IT(&htim1);

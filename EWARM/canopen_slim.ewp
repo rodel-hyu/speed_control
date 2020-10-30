@@ -1078,7 +1078,19 @@
                     <name>$PROJ_DIR$\..\Src\CANOpen\CANOpen.c</name>
                 </file>
                 <file>
+                    <name>$PROJ_DIR$\..\Src\CANOpen\CANOpen.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\CANOpen\CANOpen_batch.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\CANOpen\CANOpen_batch.h</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\Src\CANOpen\CANOpen_hw_appl.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Src\CANOpen\CANOpen_hw_appl.h</name>
                 </file>
             </group>
             <file>
